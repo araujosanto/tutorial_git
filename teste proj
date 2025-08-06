@@ -1,0 +1,147 @@
+<div id='mensagemRetorno_lei_4'></div>
+<style>
+    label {
+        margin-top: 10px;
+    }
+</style>
+<script>
+    var tamanho_4 = $(window).width();
+    if (tamanho_4 < 1300) {
+        $('#div_formulario_4').removeClass('col-md-10').removeClass('col-md-offset-1').addClass('col-md-12');
+    }
+</script>
+<form id='formulario_generico_lei_4' method='POST'>
+    <div class='row'>
+        <div id='div_formulario_4' class='col'>
+            <div class='' style='padding: 20px; border-radius: 10px;'>
+                <div class='row'>
+                    <div class='col-md-2' id='div_TIPO_lei_4'>
+                        <label for='TIPO'>
+                            <font color='#FF0000'>*</font>Tipo:
+                        </label>
+                        <select class='form-control validate[required] text  ' name='TIPO' id='TIPO' tabela='lei_4' validate[required] text>
+                            <option value=''>Selecione</option>
+                            <option value='4'>AUTÓGRAFO</option>
+                            <option value='6'>PORTARIAS NORMATIVAS</option>
+                            <option value='1'>LEI</option>
+                            <option value='2'>PROJETO DE LEI</option>
+                            <option value='3'>DECRETO</option>
+                            <option value='5'>MENSAGEM DE VETO</option>
+                        </select>
+                    </div>
+                    <input type='hidden' name='ID_LEI' class='' id='ID_LEI' tabela='lei_4' value='<?php echo (isset($dados)) ? $dados['ID_LEI'] : ''; ?>' />
+                    <div class='col-md-2'>
+                        <label for='NUMERO'>
+                            <font color='#FF0000'>*</font>Número:
+                        </label>
+                        <input type='number' class='form-control validate[required] text  ' name='NUMERO' id='NUMERO' tabela='lei_4' value='<?php echo (isset($dados)) ? $dados['NUMERO'] : ''; ?>' maxlength='' />
+                    </div>
+                    <script>
+                        $('#NUMERO').keyup(function() {
+                            $('#NUMERO').val($('#NUMERO').val().replace(/[^a-zA-Z 0-9]+/g, ''));
+                        });
+                        $('#NUMERO').focusout(function() {
+                            $('#NUMERO').val($('#NUMERO').val().replace(/[^a-zA-Z 0-9]+/g, ''));
+                        });
+                    </script>
+                    <div class='col-md-2'>
+                        <label for='ANO'>
+                            <font color='#FF0000'>*</font>Ano:
+                        </label>
+                        <input type='number' class='form-control validate[required] text  ' name='ANO' id='ANO' tabela='lei_4' value='<?php echo (isset($dados)) ? $dados['ANO'] : ''; ?>' maxlength='' />
+                    </div>
+                    <script>
+                        $('#ANO').keyup(function() {
+                            $('#ANO').val($('#ANO').val().replace(/[^a-zA-Z 0-9]+/g, ''));
+                        });
+                        $('#ANO').focusout(function() {
+                            $('#ANO').val($('#ANO').val().replace(/[^a-zA-Z 0-9]+/g, ''));
+                        });
+                    </script>
+                    <div class='col-md-12'>
+                        <label for='EMENTA'>Ementa:</label>
+                        <textarea class='form-control  ' name='EMENTA' id='EMENTA' tabela='lei_4' rows='5' cols='100'><?php echo (isset($dados)) ? $dados['EMENTA'] : ''; ?></textarea>
+                    </div>
+                    <div class='col-md-2' id='div_lei_4'>
+                        <label for='DATA_PUBLICACAO'>Data Publicação:</label>
+                        <input type='text' class='form-control validate[custom[date-pt-br]] text  ' name='DATA_PUBLICACAO' id='DATA_PUBLICACAO' tabela='lei_4' value='<?php echo (isset($dados)) ? $dados['DATA_PUBLICACAO'] : ''; ?>' maxlength='' />
+                        <script>
+                            $('#DATA_PUBLICACAO[tabela="lei_4"]').datetimepicker({
+                                lang: 'pt',
+                                timepicker: false,
+                                format: 'd/m/Y'
+                            });
+                        </script>
+                    </div>
+                    <script>
+                        $('#DATA_PUBLICACAO[tabela="lei_4"]').mask('99/99/9999');
+                    </script>
+                    <div class='col-md-1' id='div_lei_4'>
+                        <label for='VETO'>Nome Arquivo Complementar:</label>
+                        <input type='text' class='form-control' name='VETO' id='VETO' tabela='lei_4' value='<?php echo (isset($dados)) ? $dados['VETO'] : ''; ?>' maxlength='' />
+                    </div>
+                    <div class='col-md-1' id='div_lei_4'>
+                        <label for='MENSAGEM_VETO'>Texto de Exibição:</label>
+                        <input type='text' class='form-control  ' name='MENSAGEM_VETO' id='MENSAGEM_VETO' tabela='lei_4' value='<?php echo (isset($dados)) ? $dados['MENSAGEM_VETO'] : ''; ?>' maxlength='' />
+                    </div>
+                    <div class='col-md-1' id='div_lei_4'>
+                        <label for='ARQ_DO'>Nome Arquivo DO:</label>
+                        <input type='text' class='         ' name='ARQ_DO' id='ARQ_DO' tabela='lei_4' value='<?php echo (isset($dados)) ? $dados['ARQ_DO'] : ''; ?>' maxlength='' />
+                    </div>
+                    <div class='col-md-12'>
+                        <label for='PALAVRAS_CHAVE'>Palavra Chave:</label>
+                        <textarea class='form-control  ' name='PALAVRAS_CHAVE' id='PALAVRAS_CHAVE' tabela='lei_4' rows='5' cols='100'><?php echo (isset($dados)) ? $dados['PALAVRAS_CHAVE'] : ''; ?></textarea>
+                    </div>
+                </div>
+                <script>
+                    $(document).ready(function() {});
+                </script><br />
+                <div class='row'>
+                    <div class='col-12 clearfix form-actions spacing'><button id='btnGenerica_lei_4' acao='<?php echo (isset($dados)) ? "update" : "insert"; ?>' class='btn btn-default btn-success' type='submit'><i class='ace-icon fa fa-check bigger-110'></i>Enviar</button>&nbsp; &nbsp; &nbsp;<button id='btnCancelar_lei_4' class='btn btn-default btn-prev' type='button'><i class='ace-icon fa fa-arrow-left'></i>Cancelar</button></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<script>
+    $('#formulario_generico_lei_4').validationEngine({
+        onValidationComplete: function(form, status) {
+            if (status == true) {
+                var acao = $('#btnGenerica_lei_4').attr('acao');
+                var dados_form = $('#formulario_generico_lei_4:not(input[name="sequencia_campo"])').serialize();
+
+                if ($("#sequencia_campo").is(':visible')) {
+
+                    var campo_sequencia = '&sequencia_campo=' + $("#sequencia_campo").val();
+                    dados_form += campo_sequencia;
+                } else {
+
+                    $("#sequencia_campo").val('');
+
+                    var campo_sequencia = '&sequencia_campo=' + $("#sequencia_campo").val();
+                    dados_form += campo_sequencia;
+                }
+                dados_form += '&chave_systg=ID_LEI';
+                dados_form += '&tabela_systg=lei';
+                dados_form += '&idTabela_systg=4';
+                dados_form += '&dataType_systg={"id_lei":"i","numero":"i","ano":"i","arquivo_lei":"c","ementa":"c","data_criaca":"d","data_publicacao":"d","veto":"c","mensagem_veto":"c","tipo":"i","arq_do":"c","palavras_chave":"c","user_criacao":"c","status":"c"}';
+                dados_form += '&executar_systg=null';
+                $.post('ajax/lei.ajax.php?acao=' + acao, dados_form, function(data) {
+                    window.scrollTo(0, 0);
+                    $('#mensagemRetorno_lei_4').html(data.mensagem);
+                    if (acao == 'insert' && data.mensagem.indexOf('success') != -1) {
+                        setTimeout(buscador_lei_4, 2000);
+                    }
+                }, 'json');
+            } else {
+                console.log(status);
+                $('#mensagemRetorno_lei_4').html('<div class="alert alert-danger" role="alert"><center>ERRO</center></div><br/>');
+            }
+            $('#mensagemRetorno_lei_4').fadeIn(400).fadeOut(8000);
+        }
+    });
+
+    $('#btnCancelar_lei_4').click(function() {
+        buscador_lei_4();
+    });
+</script>
