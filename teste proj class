@@ -1,0 +1,311 @@
+<?php
+			
+	require_once 'Database.class.php';
+
+	final class Lei extends Database {
+
+    public function __construct() {
+		parent::__construct();
+    }
+	
+	
+	/*
+	public function __construct($tabela, $primaryKey, $orderBy){
+		
+		$this->$tabela = $tabela;
+		$this->$primaryKey = $primaryKey;
+		$this->$orderBy = $orderBy;
+	}
+	*/
+	
+    private $tabela = 'lei';
+    private $primaryKey = 'ID_LEI';
+    private $orderBy = 'ID_LEI';
+
+			
+    public function search ($termo = null, $inicio = 1){
+        try {
+			
+			$termo = str_replace("'", "''", $termo);
+									
+			if( isset($termo) && ( '' !== $termo ) ){
+				
+				$bind = array('termo'=>$termo);
+			}
+			
+			
+				
+				$where = '';
+            
+				if ($termo != null) {
+					
+					 $where = " WHERE ";
+                
+					if( is_bool($termo) ){
+					
+						
+						
+					}elseif ( is_numeric($termo) ) {
+						
+						 $where .= ($where == " WHERE ") ? " (tipo) = (:termo) " : " OR (tipo) = (:termo) " ; 
+
+						
+					}elseif( $this->ValidaData($termo)){
+						
+						 $where .= "  TO_DATE('data_publicacao', 'DD/MM/YYYY') "; 
+
+					}elseif( is_string($termo) ){
+						
+						 $bind = array('termo'=>'%'.$termo.'%');
+						$where .= ($where == " WHERE ") ? " UPPER (user_criacao) LIKE UPPER(:termo) " : " OR  UPPER (user_criacao) LIKE UPPER(:termo) "; 
+						
+ $bind = array('termo'=>'%'.$termo.'%');
+						$where .= ($where == " WHERE ") ? " UPPER (ementa) LIKE UPPER(:termo) " : " OR  UPPER (ementa) LIKE UPPER(:termo) "; 
+						
+ $bind = array('termo'=>'%'.$termo.'%');
+						$where .= ($where == " WHERE ") ? " UPPER (status) LIKE UPPER(:termo) " : " OR  UPPER (status) LIKE UPPER(:termo) "; 
+						
+
+					}
+               
+				}
+            
+            $sqlTotal = " (select total from (SELECT count(*) as total FROM {$this->tabela} {$where}) as t) as total, ";
+            $sql = "
+			SELECT 
+				".$sqlTotal."
+				* "; $sql .=	"  FROM 
+			
+			
+			{$this->tabela}
+			{$where}
+            ";
+
+				
+            $sql .= " ORDER BY " . $this->tabela . "." . $this->primaryKey . " DESC LIMIT " . QUANTIDADE_RETORNO_BUSCA . " OFFSET {$inicio}";
+			
+			if(  isset($termo) && ( '' !== $termo )  ){
+				
+				$query = $this->getQuery($sql, $bind);
+			}else{
+				
+				$query = $this->getQuery($sql);
+			}
+			
+	
+			$dados = array();
+            while ($row = $this->getArray($query)) 
+			{
+                array_push($dados, $row);
+            }
+											
+            return $dados;
+                
+        } catch (DatabaseException $ex) {
+            throw new Exception ($ex->getMessage());
+        }
+    }
+    /** select
+     * 
+     * @param int $level
+     * @param int $user
+     * @param int $id
+     * @return array
+     * @throws Exception
+     * 
+     * Lista os menus pelo level, usuario e/ou menu
+     */
+	 
+    public function select($id = null, $where = null) {
+        try {
+            $sql = " select * from {$this->tabela} ";
+            $sql .= ($id) ? " where {$this->primaryKey} = {$id} " : "";
+            if($where){
+                $sql .= ($id) ? " and {$where} " :  " where {$where} ";
+				
+            }
+            $sql .= ' order by {$this->orderBy} ';
+			            
+			$stmt = $this->getConnect();
+			$result = $stmt->prepare($sql);
+			
+			$retorno = array();
+            $dados = $result->fetchAll();
+			
+			return $dados;
+        } catch (DatabaseException $ex) {
+            throw new Exception($ex->getMessage());
+        }
+    }
+    
+    public function getById($id) {
+        try {
+            $sql = " 
+			SELECT * 
+		FROM " . $this->tabela . "
+			WHERE " . $this->primaryKey . " = " . $id;
+            $parse = $this->getQuery($sql);
+            return $this->getArray($parse);
+        } catch (DatabaseException $ex) {
+            throw new Exception($ex->getMessage());
+        }
+    }
+		    
+    public function insert($dados) {
+        try {
+			
+            $aTipoNumerico = array('numeric', 'integer');
+            $aTipoData = array('date');
+            $aTipoArquivo = array('bytea');
+            $estruturaTabela = $this->getEstruturaTabela($this->tabela);
+            $campos = $this->primaryKey;
+			
+			$this->getBeginTransaction();
+			
+			$ultimoId = "( select COALESCE((max({$this->primaryKey})),0) + 1 AS {$campos[0]} from {$this->tabela} )";
+			
+			$resultquery = $this->getQuery($ultimoId);
+			
+					
+			$result = array();
+            while ($row = $this->getArray($resultquery)) {
+                array_push($result, $row);
+            }
+			
+			$id = $this->primaryKey;
+			$valores = ( $result[0]['i'] );
+						
+			
+            foreach ($estruturaTabela as $value) {
+                if (in_array($value['data_type'], $aTipoNumerico)) { 
+                    if (isset($dados[$value['column_name']]) && $dados[$value['column_name']] != '') {
+                        $campos .= ", {$value['column_name']}";
+                        $valor = preg_replace("/[^0-9.]/", '', $dados[$value['column_name']]);
+                        $valores .= ", {$valor}";
+                    }
+                } else if (in_array($value['data_type'], $aTipoData)) { 
+                    if (isset($dados[$value['column_name']]) && $dados[$value['column_name']] != '') {
+                        $campos .= ", {$value['column_name']}";
+                        $valores .= ", TO_DATE('{$dados[$value['column_name']]}', 'DD/MM/YYYY') ";
+                    }
+                } else if (in_array($value['data_type'], $aTipoArquivo)) { 
+                    if (isset($dados[$value['column_name']]) && $dados[$value['column_name']] != '') {
+                        $campos .= ", {$value['column_name']}";
+                        $valores .= ", decode('{$dados[$value['column_name']]}','hex')";
+                    }
+                } else { //Alfanumerico
+                    if (isset($dados[$value['column_name']]) && $dados[$value['column_name']] != '') {
+                        $campos .= ", {$value['column_name']}";
+                        $valor = str_replace("'", "''", $dados[$value['column_name']]);
+                        $valores .= ", '{$valor}'";
+                    }
+                }
+            }
+			
+            $sql = "INSERT INTO {$this->tabela} ({$campos}) VALUES ({$valores});";
+			
+			$this->getQuery($sql);  
+
+			$sql = "SELECT distinct id FROM menu ORDER BY id ASC;";
+			$query = $this->getQuery($sql);            			
+			
+									
+			if(isset($this->_tabelaLog)){
+				
+				$sql = "INSERT INTO {$this->_tabelaLog} VALUES (nextval('{$this->_sequenciaLog}'), '".date('Y-m-d H:i:s')."', {$_SESSION['USUARIO_' . SESSAO]['CF']}, '{$_SESSION['USUARIO_' . SESSAO]['USERNAME']}', '{$this->tabela}', (select COALESCE((max({$this->primaryKey})),0) from {$this->tabela}), 'CADASTRAR', 'INSERT')";
+				$this->getQuery($sql);  
+				
+			}
+				
+			$this->getCommit();
+		
+		
+            return true;
+        } catch (DatabaseException $ex) {
+            $this->getRollBack();
+            throw new Exception($ex->getMessage());
+        }
+    }
+	
+    public function update($dados) {
+        try {
+			
+			$this->getBeginTransaction();
+			
+            $campos = $v = '';
+            $aTipoNumerico = array('numeric', 'integer');
+            $aTipoData = array('date');
+            $aTipoArquivo = array('bytea');
+            $estruturaTabela = $this->getEstruturaTabela($this->tabela);
+            $sql = " UPDATE {$this->tabela} SET ";
+            foreach ($estruturaTabela as $value) {
+                if (in_array($value['data_type'], $aTipoNumerico)) { //Numerico
+                    if (isset($dados[$value['column_name']]) && $dados[$value['column_name']] != '') {
+                        $valor = preg_replace("/[^0-9.]/", "", $dados[$value['column_name']]);
+                        $campos .= $v . " {$value['column_name']} = $valor ";
+                        $v = ",";
+                    }
+                } else if (in_array($value['data_type'], $aTipoData)) { //Data
+                    if (isset($dados[$value['column_name']]) && $dados[$value['column_name']] != '') {
+                        $campos .= $v . " {$value['column_name']} = TO_DATE('{$dados[$value['column_name']]}', 'DD/MM/YYYY') ";
+                        $v = ",";
+                    }
+                } else if (in_array($value['data_type'], $aTipoArquivo)) { //bytea
+                    if (isset($dados[$value['column_name']])) {
+                        $campos .= $v . " {$value['column_name']} = decode('{$dados[$value['column_name']]}','hex') ";
+                        $v = ",";
+                    }
+                } else { //Alfanumerico
+                    if (isset($dados[$value['column_name']]) && $dados[$value['column_name']] != '') {
+                        $valor = str_replace("'", "''", $dados[$value['column_name']]);
+                        $campos .= $v . " {$value['column_name']} = '{$valor}' ";
+                        $v = ",";
+                    }
+                }
+            }
+            $sql .= " {$campos} WHERE {$this->primaryKey} = {$dados[$this->primaryKey]}; ";
+			$this->getQuery($sql);
+			
+			if(isset($this->_tabelaLog)){
+			
+				$sql = "INSERT INTO {$this->_tabelaLog} VALUES ( nextval('{$this->_sequenciaLog}'), '".date('Y-m-d H:i:s')."', {$_SESSION['USUARIO_' . SESSAO]['CF']}, '{$_SESSION['USUARIO_' . SESSAO]['USERNAME']}', '{$this->tabela}', '{$dados[$this->primaryKey]}', 'ATUALIZAR', 'UPDATE')";
+				$this->getQuery($sql);
+				
+			}
+			
+			$this->getCommit();
+			return array('sucesso'=>'true', 'mensagem'=>'<div class=\'alert alert-success\' role=\'alert\'><center>Informações atualizadas com sucesso.</center></div>');
+			
+        } catch (DatabaseException $ex) {
+
+            $this->getRollBack();
+            throw new Exception($ex->getMessage());
+        }
+    }public function delete($id) {
+			try {
+
+				$this->getBeginTransaction();
+
+				$sql = "DELETE FROM {$this->tabela} WHERE {$this->primaryKey} = {$id}; ";
+				$this->getQuery($sql);
+				
+				if(isset($this->_tabelaLog)){
+				
+					$sql = "INSERT INTO {$this->_tabelaLog} VALUES (nextval('{$this->_sequenciaLog}'), '".date('Y-m-d H:i:s')."', {$_SESSION['USUARIO_' . SESSAO]['CF']}, '{$_SESSION['USUARIO_' . SESSAO]['USERNAME']}', '{$this->tabela}', '{$id}', 'EXCLUIR OU ATUALIZAR STATUS', 'DELETE')";
+					$this->getQuery($sql);
+				}
+				
+				$this->getCommit();
+								
+				return array('sucesso'=>'true', 'mensagem'=>'<div class=\'alert alert-success\' role=\'alert\'><center>Informações atualizadas com sucesso.</center></div>');
+				
+			} catch (DatabaseException $ex) {
+				$this->getRollBack();
+				throw new Exception($ex->getMessage());
+			}
+		}public function __destruct() {
+			parent::__destruct();
+		}
+
+	}
+            ?>
